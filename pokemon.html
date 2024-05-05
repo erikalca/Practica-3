@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémones</title>
+</head>
+<style>
+    .contenedor {
+        display: flex;
+        align-items: flex-start;
+    }
+    table {
+        border-collapse: collapse;
+        width: 50%; 
+    }
+    th, td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+    .informacion {
+        border: 1px solid black;
+        padding: 10px;
+        margin-left: 20px; 
+        flex-grow: 1; 
+    }
+    .informacion img {
+        max-width: 200px;
+        max-height: 200px;
+    }
+</style>
+</head>
+<body>
+    <h1>Pokémones</h1>
+    <div class="contenedor">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                </tr>
+            </thead>
+            <tbody id="lista">
+            </tbody>
+        </table>
+        <div id="detallesPoke" class="informacion" style="display: none;"></div>
+    </div>
+
+    <div style="margin: 5px;">
+        <button onclick="paginaAnterior()">Atrás</button>
+        <button onclick="siguientePagina()">Adelante</button>
+    </div>
+    
+
+    <script>
+        let offset = 0;
+
+        function obtenerInfo(url) {
+            return fetch(url)
+                .then(response => response.json())
+                .catch(error => console.error('Error:', error));
+        }
+
+        function listaPokemon(offset) {
+            const elementoLista = document.getElementById('lista');
+            elementoLista.innerHTML = '';
+            obtenerInfo(`https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=20`)
+                .then(data => {
+                    data.results.forEach(pokemon => {
+                        const row = `<tr>
+                                        <td>${pokemon.url.split('/')[6]}</td>
+                                        <td><a href="#" onclick="mostrarInfo('${pokemon.url}')">${pokemon.name}</a></td>
+                                    </tr>`;
+                        elementoLista.innerHTML += row;
+                    });
+                });
+        }
+
+        function mostrarInfo(url) {
+            obtenerInfo(url)
+                .then(data => {
+                    const detallesPokemon = document.getElementById('detallesPoke');
+                    detallesPokemon.innerHTML = `
+                        <h2>${data.name}</h2>
+                        <img src="${data.sprites.front_default}" alt="${data.name}">
+                        <p>Experiencia Base: ${data.base_experience}</p>
+                        <p>Altura: ${data.height}</p>
+                        <p>Peso: ${data.weight}</p>
+                    `;
+                    detallesPokemon.style.display = 'block';
+                });
+        }
+
+        function siguientePagina() {
+            offset += 20;
+            listaPokemon(offset);
+        }
+
+        function paginaAnterior() {
+            if (offset >= 20) {
+                offset -= 20;
+                listaPokemon(offset);
+            }
+        }
+
+        listaPokemon(offset);
+    </script>
+</body>
+</html>
